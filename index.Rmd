@@ -9,6 +9,23 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+How commmon is suicide nowadays in comparison to a few decades ago? Which age and gender groups is suicide more prevalent? What factors prove to be leading causes of suicide? More importantly, how can we use this information to better prevent this problem? Using this [Kaggle Dataset](https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016 "Suicide Rates Overview 1985 to 2016") as well as general principles of data science, we can appropriately address these questions and many more. First, I will demonstrate how to collect the data and put it into a machine-readable form. Next, I will show you how to process the data and do some exploratory analysis and visualization in order to come up with hypotheses about the data. Finally, I will show you how to test these hypotheses using machine learning.
+
+## Required Tools
+
+I will be using R 3.6.0 to carry out this analysis. Aside from that, here is a list of the libraries I'll be using:
+
+Lastly, if you plan on following this guide, you will need to download the [Kaggle Dataset](https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016 "Suicide Rates Overview 1985 to 2016"). **Note:** I will provide R code that will handle downloading the dataset for you.
+
+## 1. Getting Started
+
+
+### 1.1 Observing Our Data
+
+
+### 1.2 Tidying Our Data
+
+
+
