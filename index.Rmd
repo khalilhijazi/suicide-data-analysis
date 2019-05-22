@@ -82,18 +82,16 @@ There are other methods of tidying data, such as uniting columns into one column
 
 Now that we've tidyed up the data frame, we can start performing a variety of analyses on it. The goal of these analyses is to learn more about our data and possible notice some trends or patterns in the data and thereby be able to confidently make testable hypotheses. We will perform these analyses:
 
-* Group-based Visualizations
-*
-*
-*
+* Visualizations
+* Statistical Measurements
 
 To make some of these analyses possible, we will be using the library [ggplot2](https://ggplot2.tidyverse.org/ "ggplot2") which enables us to make interactive plots for the purpose of visualizing trends across various attributes. There are multiple plots and graphs offered by this library such as scatter plots, violin plots, histograms, bar graphs, and so on and so forth. In case you wanted to learn more about each of these, this [cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf "ggplot2 Cheat Sheet") is worth looking at.
 
-### 2.1 Group-based Visualizations
+### 2.1 Suicide Count Across Time
 
-We have a variety of groups in our data frame and we would like to see if there are some trends among those groups. That is, we would like to see whether or not a certain group (i.e. year, country, sex, age, etc.) has some overall effect on suicide count. Since our data is laid out in the form of suicide overviews per individual country at a certain year, we will need to group by certain attributes to make this trend measurement possible.
+#### 2.1.1 Visualization
 
-#### 2.1.1 Suicide Count Across Time
+We have a variety of groups in our data frame and we would like to see if there are some trends among those groups. That is, we would like to see whether or not a certain group (i.e. year, country, sex, age, etc.) has some overall effect on suicide count. Since our data is laid out in the form of suicide overviews per individual country at a certain year, we will need to group by certain attributes to make this trend measurement possible. We'll first take a look at the general trend across time only.
 
 Here, we will group by the year. That way, we will create a group for each year in our data frame. In each of those groups, we will have all the records of suicide counts in that year, regardless of other factors such as age, sex, and country.
 
@@ -115,7 +113,21 @@ suicide_data %>%
 
 From this graph, we can tell that suicide count depends on the year attribute. Although this may seem obvious, it is good practice to often check for this type of information. We can also see that in earlier years of the data (i.e. 1985-1994), the average suicide count per year was increasing for the most part and in the later years (i.e. 1995 - 2014), the average suicide count per year decreased quite a bit. Unfortunately, it also spiked up quite a bit in 2015. Lastly, we can tell that the data for 2016 is either skewed due to very little information or we just did extremely well at lowering the average suicide count per year by approximately 175 incidents.
 
-#### 2.1.2 Suicide Count Per Sex Group Across Time
+#### 2.1.2 Statistical Measurements
+
+We can better affirm what we've observed by taking a look at some statistical measurements, specifically the mean and standard deviation, of the average suicide counts data we have across all the years.
+
+```{r compute_mean_std_dev_year, comment=NA, message=F}
+data_grouped_by_year <- suicide_data %>% group_by(year) %>% summarize(mean_suicide_count = mean(suicides_no))
+mean(data_grouped_by_year$mean_suicide_count)
+sd(data_grouped_by_year$mean_suicide_count)
+```
+
+This seems reliable since the mean suicide count didn't really jump or drop drastically very much across years. It was more of a slight alteration in value from year to year, and based on the fact that standard deviation gives us a measurement of spread, we can infer that suicide counts haven't changed much from one year to another.
+
+### 2.2 Suicide Count Per Sex Group Across Time
+
+#### 2.2.1 Visualization
 
 Similar to 2.1.1, we will first group by the year. However, now we are also subgrouping a second time based on sex affiliation. By doing so, we will have all the records of suicide counts for a given sex group for each year, regardless of other factors such as age, sex, and country.
 
@@ -135,9 +147,23 @@ suicide_data %>%
 
 Based on this graph, we can tell for sure that males tend to have higher suicide incidents than do females. For each of the years (excluding 2016), there's a huge difference in the average number of suicide incidents per each group, and this trend has been consistent over time, which makes it very likely to be true that suicide is generally more prevalent among males than females. We also now have confirmed that suicide counts are dependent on gender (i.e. they are not constant across gender groups).
 
-#### 2.1.3 Suicide Count Per Country 
+#### 2.2.2 Statistical Measurements
 
-Similar to section 2.1.2, here we will also group by the year first and then subgroup a second time based on country. We will do something differently however. Let's first see how many possible values we have in the country attribute.
+We can better affirm what we've observed by taking a look at some statistical measurements, specifically the mean and standard deviation, of the average suicide counts data we have per sex group across all the years.
+
+```{r compute_mean_std_dev_sex, comment=NA, message=F}
+data_grouped_by_sex <- suicide_data %>% group_by(year, sex) %>% summarize(mean_suicide_count = mean(suicides_no))
+mean(data_grouped_by_sex$mean_suicide_count)
+sd(data_grouped_by_sex$mean_suicide_count)
+```
+
+These evaluations are understandable since the mean suicide count for each gender remained fairly consistent with respect to its gender, and thus most of the variation in this data is caused by the differences betweeen the average suicide count of each sex group across the years. Visually, one can notice this by observing the graph and noticing that there is a significant gap between each male and female data point for each year.
+
+### 2.3 Suicide Count Per Country 
+
+#### 2.3.1 Visualization
+
+Similar to section 2.2.1, here we will also group by the year first and then subgroup a second time based on country. We will do something differently however. Let's first see how many possible values we have in the country attribute.
 
 ```{r find_categories, comment=NA, message=F}
 categories <- unique(suicide_data$country)
@@ -190,3 +216,15 @@ From these plots, we can surely tell that that country specification has some de
 
 * the increment value on the y-axis isn't the same across all graphs so not all countries (although they appear to fall in the same region across different graphs, that doesn't necessarily mean they have relatively close values). That is to say, a country in the first plot and another country in the fourth plot could both be in the lower left region of their respected graphs but one could be pointing to a y-axis value of 100 suicide counts on average while the other could be pointing to a y-axis value of 400 suicide counds on average.
 * similar to the above comment, the increments are pretty significant for some of the graphs. For instancee, on graphs 3-5, the increment is +250. That being said, two nearby points could have a difference of a hundred or so. Visually, the values appear to be close, but we need not to jump to conclusions too fast.
+
+#### 2.3.2 Statistical Measurements
+
+We can better affirm what we've observed by taking a look at some statistical measurements, specifically the mean and standard deviation, of the average suicide counts data we have per country across all the years.
+
+```{r compute_mean_std_dev_country, comment=NA, message=F}
+data_grouped_by_country <- suicide_data %>% group_by(year, country) %>% summarize(mean_suicide_count = mean(suicides_no))
+mean(data_grouped_by_country$mean_suicide_count)
+sd(data_grouped_by_country$mean_suicide_count)
+```
+
+This can be verified by the fact that the mean suicide count was generally consistent for a lot of values around 500-600 per year with the exception of multiple outliers in the thousands. Then, of course, there were countries, unlike sex and time attributes, where very little data was collected and so their means were either sporadic due to their dependence on minor amounts of data.
