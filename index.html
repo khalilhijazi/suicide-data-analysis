@@ -204,7 +204,8 @@ $(document).ready(function () {
 <h2>Required Tools</h2>
 <p>I will be using R 3.6.0 to carry out this analysis. Aside from that, here is a list of the libraries I’ll be using:</p>
 <ul>
-<li>tidyverse</li>
+<li><a href="https://www.tidyverse.org/" title="Tidyverse">tidyverse</a></li>
+<li><a href="https://magrittr.tidyverse.org/" title="magrittr">magrittr</a></li>
 </ul>
 <p>Lastly, if you plan on following this guide, you will need to download the <a href="https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016" title="Suicide Rates Overview 1985 to 2016">Kaggle Dataset</a>. <strong>Note:</strong> If you do not already have a Kaggle account, you will be required to create one to receive permission to download the dataset.</p>
 </div>
@@ -246,6 +247,51 @@ suicide_data %&gt;% slice(1:10)</code></pre>
 </div>
 <div id="tidying-the-data" class="section level3">
 <h3>1.2 Tidying the Data</h3>
+<p>Taking a look at the data, some modifications are needed for the purpose of our operations on that data. For instance, certain columns aren’t necessary and can be deleted and more importantly, some attributes’ datatypes need to be changed to other datatypes that are more suitable to the computations they’ll be involved in.</p>
+<p>I’ll first start by removing the unnecessary columns. I’ll be removing the ‘country-year’ attribute because that is simply a concatenation of the first two attributes and thus isn’t necessary. I’ll also be removing the ‘HDI for year’ attribute because there’s just not much data on it. Lastly, I’ll remove the ‘generation’ attribute because it is simply an encoding of the ‘age’ attribute, and thus we only need one of the two.</p>
+<pre class="r"><code>drops &lt;- c(&quot;country-year&quot;, &quot;HDI for year&quot;, &quot;generation&quot;)
+suicide_data[drops] &lt;- NULL
+suicide_data</code></pre>
+<pre><code># A tibble: 27,820 x 9
+   country  year sex   age   suicides_no population `suicides/100k …
+   &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;       &lt;dbl&gt;      &lt;dbl&gt;            &lt;dbl&gt;
+ 1 Albania  1987 male  15-2…          21     312900             6.71
+ 2 Albania  1987 male  35-5…          16     308000             5.19
+ 3 Albania  1987 fema… 15-2…          14     289700             4.83
+ 4 Albania  1987 male  75+ …           1      21800             4.59
+ 5 Albania  1987 male  25-3…           9     274300             3.28
+ 6 Albania  1987 fema… 75+ …           1      35600             2.81
+ 7 Albania  1987 fema… 35-5…           6     278800             2.15
+ 8 Albania  1987 fema… 25-3…           4     257200             1.56
+ 9 Albania  1987 male  55-7…           1     137500             0.73
+10 Albania  1987 fema… 5-14…           0     311000             0   
+# … with 27,810 more rows, and 2 more variables: `gdp_for_year ($)` &lt;dbl&gt;,
+#   `gdp_per_capita ($)` &lt;dbl&gt;</code></pre>
+<p>Now that I’ve removed the unnecesssary columns, it’s time to modify certain datatypes to our advantage. First, I’ll change the ‘year’, ‘suicides_no’, ‘population’, and ‘gdp_per_capita ($)’ attributes to integer columns instead of doubles. Although, the attribute ‘gdp_for_year ($)’ is not a fractional number, I will leave it as a double because some of its entries are far too large to be represented as integer values in R.</p>
+<p><strong>Note:</strong> Here, I make use of the <a href="https://magrittr.tidyverse.org/" title="magrittr">magrittr</a> package. This package allows me to use the <strong>%&lt;&gt;%</strong> operation which is similar to the <strong>%&gt;%</strong> dplyr operation, except that this one reassigns the data frame to whatever is resulted of the pipeline operations. So in this case, suicide_data is being modified once the columns have been mutated from doubles to integers.s</p>
+<pre class="r"><code>library(magrittr)
+int_cols &lt;- c('year', 'suicides_no', 'population', 'gdp_per_capita ($)')
+
+suicide_data[int_cols] %&lt;&gt;%
+  mutate_all(as.integer)
+
+suicide_data</code></pre>
+<pre><code>## # A tibble: 27,820 x 9
+##    country  year sex   age   suicides_no population `suicides/100k …
+##    &lt;chr&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt;       &lt;int&gt;      &lt;int&gt;            &lt;dbl&gt;
+##  1 Albania  1987 male  15-2…          21     312900             6.71
+##  2 Albania  1987 male  35-5…          16     308000             5.19
+##  3 Albania  1987 fema… 15-2…          14     289700             4.83
+##  4 Albania  1987 male  75+ …           1      21800             4.59
+##  5 Albania  1987 male  25-3…           9     274300             3.28
+##  6 Albania  1987 fema… 75+ …           1      35600             2.81
+##  7 Albania  1987 fema… 35-5…           6     278800             2.15
+##  8 Albania  1987 fema… 25-3…           4     257200             1.56
+##  9 Albania  1987 male  55-7…           1     137500             0.73
+## 10 Albania  1987 fema… 5-14…           0     311000             0   
+## # … with 27,810 more rows, and 2 more variables: `gdp_for_year ($)` &lt;dbl&gt;,
+## #   `gdp_per_capita ($)` &lt;int&gt;</code></pre>
+<p>There are other methods of tidying data, such as uniting columns into one column or separating columns into multiple columns (we could’ve done this with the country-year column but it was easier to remove it since we already had two separate columns for country and year). Just because these methods weren’t used, that doesn’t mean they aren’t important; it just means that they weren’t needed for this dataset. As a data scientist, it is up to you to decide when certain methods are necessary and when not.</p>
 </div>
 </div>
 
