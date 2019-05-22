@@ -93,7 +93,7 @@ To make some of these analyses possible, we will be using the library [ggplot2](
 
 We have a variety of groups in our data frame and we would like to see if there are some trends among those groups. That is, we would like to see whether or not a certain group (i.e. year, country, sex, age, etc.) has some overall effect on suicide count. Since our data is laid out in the form of suicide overviews per individual country at a certain year, we will need to group by certain attributes to make this trend measurement possible.
 
-#### 2.1.1 Suicide Trend Over Time
+#### 2.1.1 Suicide Count Across Time
 
 Here, we will group by the year. That way, we will create a group for each year in our data frame. In each of those groups, we will have all the records of suicide counts in that year, regardless of other factors such as age, sex, and country.
 
@@ -102,9 +102,9 @@ library(ggplot2)
 
 suicide_data %>%
   group_by(year) %>% # grouping by each year
-  summarize(mean_suicide_count = mean(suicides_no)) %>% #computing mean suicide incidents per year
+  summarize(mean_suicide_count = mean(suicides_no)) %>% # computing mean suicide incidents per year
   ggplot(aes(x=factor(year), y=mean_suicide_count, group=1)) +
-  geom_point() + # plotting point
+  geom_point() + # plotting points
   geom_line() + # plotting line across points 
   scale_y_continuous(breaks = seq(0, 300, by = 25)) + # setting range for the mean suicide count values
   labs(title="Average Suicide Count Per Year", # decorating graph with axes titles as well as graph title
@@ -114,3 +114,23 @@ suicide_data %>%
 ```
 
 From this graph, we can tell that suicide count depends on the year attribute. Although this may seem obvious, it is good practice to often check for this type of information. We can also see that in earlier years of the data (i.e. 1985-1994), the average suicide count per year was increasing for the most part and in the later years (i.e. 1995 - 2014), the average suicide count per year decreased quite a bit. Unfortunately, it also spiked up quite a bit in 2015. Lastly, we can tell that the data for 2016 is either skewed due to very little information or we just did extremely well at lowering the average suicide count per year by approximately 175 incidents.
+
+#### 2.1.2 Suicide Count Per Sex Group Across Time
+
+Similar to 2.1.1, we will first group by the year. However, now we are also subgrouping a second time based on sex affiliation. By doing so, we will have all the records of suicide counts for a given sex group for each year, regardless of other factors such as age, sex, and country.
+
+```{r trend_across_sex_over_time, comment=NA, message=F}
+suicide_data %>%
+  group_by(year, sex) %>% # grouping by each year and then by sex
+  summarize(mean_suicide_count = mean(suicides_no)) %>% # computing mean suicide incidents per year per sex group
+  ggplot(aes(x=factor(year), y=mean_suicide_count, group=sex)) +
+  geom_point(aes(color=sex)) + # plotting points
+  geom_line(aes(color=sex)) + # plotting line across points 
+  scale_y_continuous(breaks = seq(0, 500, by = 50)) + # setting range for the mean suicide count values
+  labs(title="Average Suicide Count Per Sex Group Across Time", # adding graph title plus axes titles
+       x = "Year",
+       y = "Average Suicide Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # formatting x axis labels by putting years at an angle
+```
+
+Based on this graph, we can tell for sure that males tend to have higher suicide incidents than do females. For each of the years (excluding 2016), there's a huge difference in the average number of suicide incidents per each group, and this trend has been consistent over time, which makes it very likely to be true that suicide is generally more prevalent among males than females. We also now have confirmed that suicide counts are dependent on gender (i.e. they are not constant across gender groups).
