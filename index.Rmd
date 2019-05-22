@@ -19,6 +19,7 @@ I will be using R 3.6.0 to carry out this analysis. Aside from that, here is a l
 
 * [tidyverse](https://www.tidyverse.org/ "Tidyverse")
 * [magrittr](https://magrittr.tidyverse.org/ "magrittr")
+* [ggplot2](https://ggplot2.tidyverse.org/ "ggplot2")
 
 Lastly, if you plan on following this guide, you will need to download the [Kaggle Dataset](https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016 "Suicide Rates Overview 1985 to 2016"). **Note:** If you do not already have a Kaggle account, you will be required to create one to receive permission to download the dataset.
 
@@ -56,8 +57,8 @@ Taking a look at the data, some modifications are needed for the purpose of our 
 I'll first start by removing the unnecessary columns. I'll be removing the 'country-year' attribute because that is simply a concatenation of the first two attributes and thus isn't necessary. I'll also be removing the 'HDI for year' attribute because there's just not much data on it. Lastly, I'll remove the 'generation' attribute because it is simply an encoding of the 'age' attribute, and thus we only need one of the two.
 
 ```{r remove_unnecessary_columns, comment=NA, message=F}
-drops <- c("country-year", "HDI for year", "generation")
-suicide_data[drops] <- NULL
+drops <- c("country-year", "HDI for year", "generation") # attributes to be dropped
+suicide_data[drops] <- NULL # dropping the collection of attributes from suicide_data data frame
 suicide_data
 ```
 
@@ -67,12 +68,49 @@ Now that I've removed the unnecesssary columns, it's time to modify certain data
 
 ```{r modify_datatypes, comment+NA, message=F}
 library(magrittr)
-int_cols <- c('year', 'suicides_no', 'population', 'gdp_per_capita ($)')
+int_cols <- c('year', 'suicides_no', 'population', 'gdp_per_capita ($)') # attributes to convert to integers
 
 suicide_data[int_cols] %<>%
-  mutate_all(as.integer)
+  mutate_all(as.integer) # modifying all the selected columns in int_cols from double datatype to integer
 
 suicide_data
 ```
 
 There are other methods of tidying data, such as uniting columns into one column or separating columns into multiple columns (we could've done this with the country-year column but it was easier to remove it since we already had two separate columns for country and year). Just because these methods weren't used, that doesn't mean they aren't important; it just means that they weren't needed for this dataset. As a data scientist, it is up to you to decide when certain methods are necessary and when not.
+
+## 2. Exploratory Data Analysis
+
+Now that we've tidyed up the data frame, we can start performing a variety of analyses on it. The goal of these analyses is to learn more about our data and possible notice some trends or patterns in the data and thereby be able to confidently make testable hypotheses. We will perform these analyses:
+
+* Group-based Visualizations
+*
+*
+*
+
+To make some of these analyses possible, we will be using the library [ggplot2](https://ggplot2.tidyverse.org/ "ggplot2") which enables us to make interactive plots for the purpose of visualizing trends across various attributes. There are multiple plots and graphs offered by this library such as scatter plots, violin plots, histograms, bar graphs, and so on and so forth. In case you wanted to learn more about each of these, this [cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf "ggplot2 Cheat Sheet") is worth looking at.
+
+### 2.1 Group-based Visualizations
+
+We have a variety of groups in our data frame and we would like to see if there are some trends among those groups. That is, we would like to see whether or not a certain group (i.e. year, country, sex, age, etc.) has some overall effect on suicide count. Since our data is laid out in the form of suicide overviews per individual country at a certain year, we will need to group by certain attributes to make this trend measurement possible.
+
+#### 2.1.1 Suicide Trend Over Time
+
+Here, we will group by the year. That way, we will create a group for each year in our data frame. In each of those groups, we will have all the records of suicide counts in that year, regardless of other factors such as age, sex, and country.
+
+```{r trend_over_time, comment=NA, message=F}
+library(ggplot2)
+
+suicide_data %>%
+  group_by(year) %>% # grouping by each year
+  summarize(mean_suicide_count = mean(suicides_no)) %>% #computing mean suicide incidents per year
+  ggplot(aes(x=factor(year), y=mean_suicide_count, group=1)) +
+  geom_point() + # plotting point
+  geom_line() + # plotting line across points 
+  scale_y_continuous(breaks = seq(0, 300, by = 25)) + # setting range for the mean suicide count values
+  labs(title="Average Suicide Count Per Year", # decorating graph with axes titles as well as graph title
+       x = "Year",
+       y = "Average Suicide Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # formatting x axis labels by putting years at an angle
+```
+
+From this graph, we can tell that suicide count depends on the year attribute. Although this may seem obvious, it is good practice to often check for this type of information. We can also see that in earlier years of the data (i.e. 1985-1994), the average suicide count per year was increasing for the most part and in the later years (i.e. 1995 - 2014), the average suicide count per year decreased quite a bit. Unfortunately, it also spiked up quite a bit in 2015. Lastly, we can tell that the data for 2016 is either skewed due to very little information or we just did extremely well at lowering the average suicide count per year by approximately 175 incidents.
