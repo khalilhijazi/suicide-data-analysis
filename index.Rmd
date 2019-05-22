@@ -17,15 +17,40 @@ How commmon is suicide nowadays in comparison to a few decades ago? Which age an
 
 I will be using R 3.6.0 to carry out this analysis. Aside from that, here is a list of the libraries I'll be using:
 
-Lastly, if you plan on following this guide, you will need to download the [Kaggle Dataset](https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016 "Suicide Rates Overview 1985 to 2016"). **Note:** I will provide R code that will handle downloading the dataset for you.
+* tidyverse
+
+Lastly, if you plan on following this guide, you will need to download the [Kaggle Dataset](https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016 "Suicide Rates Overview 1985 to 2016"). **Note:** If you do not already have a Kaggle account, you will be required to create one to receive permission to download the dataset.
 
 ## 1. Getting Started
 
+Let's first start by downloading the data. I downloaded the data as a CSV (comma separated values) file and stored it under the **data** subdirectory. 
 
-### 1.1 Observing Our Data
+Now, I will load the CSV file into a form that I can manipulate using R. To do so, I will use the **read_csv** function from the **tidyverse** package. It's important to note that R uses rectangular grid data structures for storing data called data frames. In a data frame, each row corresponds to an entity and each of the columns is an attribute for the entities across the table. That being said, the *read_csv* function takes the dataset CSV file and loads it into a data frame, which we can then easily work with in R. For more information on the **tidyverse** package and its features, feel free to check out this [resource](https://www.tidyverse.org/ "Tidyverse").
+
+```{r load_data, message=FALSE}
+library(tidyverse)
+# loading data into data frame
+file_path <- "data/master.csv"
+suicide_data <- read_csv(file_path)
+# printing first ten rows of data frame
+suicide_data %>% slice(1:10)
+```
+
+### 1.1 Observing the Data
+
+We now have a data frame called **suicide_data** that has all our data. Here, we can see the basic attributes our entities will share such as country, year, sex, age, and other factors related to each suicide instance. Any missing data is assigned a value of NA.
+
+One last thing to note is that attributes can come in a variety of data types, but there are five main types (categorical, numeric, datetime, geolocation, and other). An attribute can only belong to one type (i.e. if it is categorical, it cannot be numeric unless represented otherwise). If it is a categorical attribute, then it must be either ordered or unordered. Categorically ordered attributes are ones that contain a fixed set of values that have some importance paradigm. Categorically unordered attributes on the other hand are the exact opposite in the sense that there is no significance to the values other than the fact that they are different values. Similarly, if an attribute is numerical, it can either be discrete or continuous. I won't go into depth of how this conclusion is arrived at but the general rule of thumb is that discrete numerical attributes are typically countable whereas continuous aren't.
+
+Here are some examples from our dataset:
+
+* 'country' | categorical unordered | Takes a value from a finite set of countries |
+* 'suicides_no' | numeric discrete | Takes a value from a finite set of numeric integer suicide counts |
+* 'suicides/100k pop' | numeric continuous | Takes a value from an infinite set of ratios of suicides to 100k populations |
+
+### 1.2 Tidying the Data
 
 
-### 1.2 Tidying Our Data
 
 
 
