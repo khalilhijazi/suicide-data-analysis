@@ -228,3 +228,58 @@ sd(data_grouped_by_country$mean_suicide_count)
 ```
 
 This can be verified by the fact that the mean suicide count was generally consistent for a lot of values around 500-600 per year with the exception of multiple outliers in the thousands. Then, of course, there were countries, unlike sex and time attributes, where very little data was collected and so their means were either sporadic due to their dependence on minor amounts of data.
+
+## Machine Learning
+
+Machine learning is a broad field and describing it in just a few sentences isn't exactly the easiest thing per se. However, if I had to put it into a few sentences, I'd say that machine learning is the art of teaching machines to replicate human intelligence in pattern recognition and prediction based on that recognition through the use sufficient data and well designed, strategic algorithms to operate on that data.
+
+Based on the data explored earlier, it seems like multilinear regression would probably be our best bet at predicting suicide count if given informaation like the year, country, sex, and so on. We'll first start by fitting the multiregression model and seeing which predictors are needed and which not.
+
+First, I will build two models, one with the country attribute and the second without the country attribute since the country attribute is categorical. I will be performing a likelihood ratio test to determine the overall effect of the country attribute on the results. To perform this test, I will fit the two models as I described earlier, and use the anova function to produce the test results for me.
+
+```{r ml1, comment=NA, message=F}
+library(broom)
+data_fit <- lm(suicides_no~1+country+year+sex+age+population, data=suicide_data)
+data_fit2 <- lm(suicides_no~1+year+sex+age+population, data=suicide_data)
+
+anova(data_fit, data_fit2, test="LRT")
+```
+
+Based on this result, the likelihood ratio test was highly significant, thereby allowing us to conclude that the variable country should remain in the model.
+
+I will now repeat this process with the age and sex attributes.
+
+```{r ml2, comment=NA, message=F}
+data_fit2 <- lm(suicides_no~1+country+year+age+population, data=suicide_data)
+anova(data_fit, data_fit2, test="LRT")
+```
+
+Based on this result, the likelihood ratio test was highly significant, thereby allowing us to conclude that the sex attribute should remain in the model.
+
+```{r ml3, comment=NA, message=F}
+data_fit2 <- lm(suicides_no~1+country+year+sex+population, data=suicide_data)
+anova(data_fit, data_fit2, test="LRT")
+```
+
+Based on this result, the likelihood ratio test was highly significant, thereby allowing us to conclude that the age attribute should remain in the model.
+
+Now, let's take a look at the rest of the attributes (i.e. the numeric ones) and see which ones we need to remove from our model.
+
+```{r see_summary, comment=NA, message=F}
+summary(data_fit)
+```
+
+Here is a tidyed up version
+
+```{r tidy_summary, comment=NA, message=F}
+data_fit_stats <- data_fit %>%
+  tidy()
+data_fit_stats %>% knitr::kable()
+```
+
+Based on this, we can see that the year attribute has a p-value = 0.0000299 <= 0.05. The population attribute also has a p-value = 0.0000000 <= 0.05. Therefore, we need to include these in our model.
+
+Since all the attributes we chose at first were correct, we need not change our model and can proceed to predicting data.
+
+
+

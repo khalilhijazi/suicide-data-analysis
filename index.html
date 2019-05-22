@@ -481,6 +481,1072 @@ mean(data_grouped_by_country$mean_suicide_count)</code></pre>
 </div>
 </div>
 </div>
+<div id="machine-learning" class="section level2">
+<h2>Machine Learning</h2>
+<p>Machine learning is a broad field and describing it in just a few sentences isn’t exactly the easiest thing per se. However, if I had to put it into a few sentences, I’d say that machine learning is the art of teaching machines to replicate human intelligence in pattern recognition and prediction based on that recognition through the use sufficient data and well designed, strategic algorithms to operate on that data.</p>
+<p>Based on the data explored earlier, it seems like multilinear regression would probably be our best bet at predicting suicide count if given informaation like the year, country, sex, and so on. We’ll first start by fitting the multiregression model and seeing which predictors are needed and which not.</p>
+<p>First, I will build two models, one with the country attribute and the second without the country attribute since the country attribute is categorical. I will be performing a likelihood ratio test to determine the overall effect of the country attribute on the results. To perform this test, I will fit the two models as I described earlier, and use the anova function to produce the test results for me.</p>
+<pre class="r"><code>library(broom)
+data_fit &lt;- lm(suicides_no~1+country+year+sex+age+population, data=suicide_data)
+data_fit2 &lt;- lm(suicides_no~1+year+sex+age+population, data=suicide_data)
+
+anova(data_fit, data_fit2, test=&quot;LRT&quot;)</code></pre>
+<pre><code>Analysis of Variance Table
+
+Model 1: suicides_no ~ 1 + country + year + sex + age + population
+Model 2: suicides_no ~ 1 + year + sex + age + population
+  Res.Df        RSS   Df   Sum of Sq  Pr(&gt;Chi)    
+1  27711 1.0113e+10                               
+2  27811 1.3121e+10 -100 -3007117908 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<p>Based on this result, the likelihood ratio test was highly significant, thereby allowing us to conclude that the variable country should remain in the model.</p>
+<p>I will now repeat this process with the age and sex attributes.</p>
+<pre class="r"><code>data_fit2 &lt;- lm(suicides_no~1+country+year+age+population, data=suicide_data)
+anova(data_fit, data_fit2, test=&quot;LRT&quot;)</code></pre>
+<pre><code>Analysis of Variance Table
+
+Model 1: suicides_no ~ 1 + country + year + sex + age + population
+Model 2: suicides_no ~ 1 + country + year + age + population
+  Res.Df        RSS Df  Sum of Sq  Pr(&gt;Chi)    
+1  27711 1.0113e+10                            
+2  27712 1.0640e+10 -1 -526315878 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<p>Based on this result, the likelihood ratio test was highly significant, thereby allowing us to conclude that the sex attribute should remain in the model.</p>
+<pre class="r"><code>data_fit2 &lt;- lm(suicides_no~1+country+year+sex+population, data=suicide_data)
+anova(data_fit, data_fit2, test=&quot;LRT&quot;)</code></pre>
+<pre><code>Analysis of Variance Table
+
+Model 1: suicides_no ~ 1 + country + year + sex + age + population
+Model 2: suicides_no ~ 1 + country + year + sex + population
+  Res.Df        RSS Df  Sum of Sq  Pr(&gt;Chi)    
+1  27711 1.0113e+10                            
+2  27716 1.0510e+10 -5 -396658415 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<p>Based on this result, the likelihood ratio test was highly significant, thereby allowing us to conclude that the age attribute should remain in the model.</p>
+<p>Now, let’s take a look at the rest of the attributes (i.e. the numeric ones) and see which ones we need to remove from our model.</p>
+<pre class="r"><code>summary(data_fit)</code></pre>
+<pre><code>
+Call:
+lm(formula = suicides_no ~ 1 + country + year + sex + age + population, 
+    data = suicide_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3980.4  -149.3     3.9   104.7 17127.7 
+
+Coefficients:
+                                      Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                          3.491e+03  8.943e+02   3.903 9.51e-05
+countryAntigua and Barbuda           3.034e+01  5.009e+01   0.606 0.544757
+countryArgentina                    -1.984e+02  4.892e+01  -4.055 5.03e-05
+countryArmenia                       2.488e-01  5.108e+01   0.005 0.996114
+countryAruba                         3.965e+01  5.967e+01   0.664 0.506394
+countryAustralia                    -1.763e+01  4.903e+01  -0.360 0.719136
+countryAustria                       5.941e+01  4.836e+01   1.228 0.219271
+countryAzerbaijan                   -5.797e+01  5.731e+01  -1.011 0.311808
+countryBahamas                       3.159e+01  5.202e+01   0.607 0.543678
+countryBahrain                       2.856e+01  5.323e+01   0.537 0.591543
+countryBarbados                      2.808e+01  5.098e+01   0.551 0.581789
+countryBelarus                       1.450e+02  5.322e+01   2.724 0.006462
+countryBelgium                       6.875e+01  4.863e+01   1.414 0.157472
+countryBelize                        3.260e+01  4.970e+01   0.656 0.511849
+countryBosnia and Herzegovina        1.932e+01  1.289e+02   0.150 0.880868
+countryBrazil                       -1.476e+03  5.591e+01 -26.396  &lt; 2e-16
+countryBulgaria                      2.792e+01  4.896e+01   0.570 0.568448
+countryCabo Verde                    5.018e+01  1.784e+02   0.281 0.778496
+countryCanada                       -4.548e+01  4.952e+01  -0.918 0.358412
+countryChile                        -4.423e+01  4.866e+01  -0.909 0.363340
+countryColombia                     -3.081e+02  4.897e+01  -6.291 3.21e-10
+countryCosta Rica                    4.170e+00  4.895e+01   0.085 0.932106
+countryCroatia                       5.420e+01  5.275e+01   1.027 0.304217
+countryCuba                          4.082e+01  5.152e+01   0.792 0.428213
+countryCyprus                        3.734e+01  5.874e+01   0.636 0.524958
+countryCzech Republic                3.896e+01  5.020e+01   0.776 0.437730
+countryDenmark                       2.969e+01  5.263e+01   0.564 0.572697
+countryDominica                      3.384e+00  1.784e+02   0.019 0.984870
+countryEcuador                      -6.231e+01  4.864e+01  -1.281 0.200177
+countryEl Salvador                   6.974e+00  5.149e+01   0.135 0.892267
+countryEstonia                       5.207e+01  5.327e+01   0.978 0.328297
+countryFiji                          3.604e+01  6.448e+01   0.559 0.576148
+countryFinland                       6.476e+01  4.931e+01   1.313 0.189096
+countryFrance                        1.929e+02  4.986e+01   3.869 0.000110
+countryGeorgia                      -8.016e+00  5.260e+01  -0.152 0.878881
+countryGermany                      -8.208e+01  5.228e+01  -1.570 0.116411
+countryGreece                       -7.229e+01  4.863e+01  -1.486 0.137172
+countryGrenada                       3.304e+01  5.061e+01   0.653 0.513845
+countryGuatemala                    -8.173e+01  4.897e+01  -1.669 0.095152
+countryGuyana                        3.569e+01  5.099e+01   0.700 0.483975
+countryHungary                       1.455e+02  5.064e+01   2.872 0.004076
+countryIceland                       3.119e+01  4.836e+01   0.645 0.518937
+countryIreland                       1.715e+01  4.895e+01   0.350 0.726126
+countryIsrael                       -1.283e+01  4.862e+01  -0.264 0.791932
+countryItaly                        -3.604e+02  4.952e+01  -7.279 3.46e-13
+countryJamaica                      -1.841e+00  5.632e+01  -0.033 0.973928
+countryJapan                         5.966e+02  5.288e+01  11.282  &lt; 2e-16
+countryKazakhstan                    1.662e+02  5.058e+01   3.285 0.001020
+countryKiribati                      2.429e+01  6.442e+01   0.377 0.706068
+countryKuwait                        7.226e+00  5.099e+01   0.142 0.887313
+countryKyrgyzstan                    1.902e+01  5.054e+01   0.376 0.706696
+countryLatvia                        6.340e+01  5.327e+01   1.190 0.233936
+countryLithuania                     1.055e+02  5.275e+01   2.000 0.045492
+countryLuxembourg                    3.188e+01  4.862e+01   0.656 0.511975
+countryMacau                         1.864e+01  1.783e+02   0.105 0.916757
+countryMaldives                      3.803e+01  6.657e+01   0.571 0.567802
+countryMalta                         2.894e+01  4.862e+01   0.595 0.551625
+countryMauritius                     2.787e+01  4.836e+01   0.576 0.564415
+countryMexico                       -8.779e+02  5.104e+01 -17.201  &lt; 2e-16
+countryMongolia                      2.382e+01  1.948e+02   0.122 0.902672
+countryMontenegro                    3.671e+01  6.656e+01   0.552 0.581244
+countryNetherlands                  -3.689e+01  4.840e+01  -0.762 0.446006
+countryNew Zealand                   2.369e+01  4.931e+01   0.480 0.630931
+countryNicaragua                     1.205e+01  8.054e+01   0.150 0.881094
+countryNorway                        2.275e+01  4.895e+01   0.465 0.642165
+countryOman                          1.322e+01  1.075e+02   0.123 0.902090
+countryPanama                        9.250e+00  5.099e+01   0.181 0.856058
+countryParaguay                     -1.453e+01  5.009e+01  -0.290 0.771749
+countryPhilippines                  -8.044e+02  5.966e+01 -13.483  &lt; 2e-16
+countryPoland                        3.292e+01  5.183e+01   0.635 0.525305
+countryPortugal                     -2.632e+01  5.010e+01  -0.525 0.599409
+countryPuerto Rico                   1.063e+01  4.862e+01   0.219 0.826907
+countryQatar                         2.852e+01  5.873e+01   0.486 0.627203
+countryRepublic of Korea             1.451e+02  4.916e+01   2.952 0.003160
+countryRomania                      -2.592e+01  4.987e+01  -0.520 0.603250
+countryRussian Federation            1.922e+03  5.553e+01  34.618  &lt; 2e-16
+countrySaint Kitts and Nevis         1.495e+01  1.074e+02   0.139 0.889311
+countrySaint Lucia                   3.060e+01  4.969e+01   0.616 0.538038
+countrySaint Vincent and Grenadines  3.532e+01  5.100e+01   0.693 0.488623
+countrySan Marino                    3.451e+01  1.073e+02   0.322 0.747824
+countrySerbia                        6.162e+01  5.552e+01   1.110 0.267056
+countrySeychelles                    3.976e+01  5.548e+01   0.717 0.473572
+countrySingapore                     1.830e+01  4.862e+01   0.376 0.706591
+countrySlovakia                      1.938e+01  5.260e+01   0.368 0.712537
+countrySlovenia                      5.780e+01  5.327e+01   1.085 0.277867
+countrySouth Africa                 -5.170e+02  5.442e+01  -9.500  &lt; 2e-16
+countrySpain                        -2.336e+02  4.906e+01  -4.761 1.93e-06
+countrySri Lanka                     2.250e+02  6.445e+01   3.490 0.000483
+countrySuriname                      3.296e+01  4.969e+01   0.663 0.507094
+countrySweden                        2.447e+01  4.903e+01   0.499 0.617702
+countrySwitzerland                   4.910e+01  5.327e+01   0.922 0.356676
+countryThailand                     -4.045e+02  5.069e+01  -7.981 1.51e-15
+countryTrinidad and Tobago           2.536e+01  5.009e+01   0.506 0.612634
+countryTurkey                       -7.566e+02  7.674e+01  -9.858  &lt; 2e-16
+countryTurkmenistan                  5.052e+00  4.931e+01   0.102 0.918405
+countryUkraine                       3.646e+02  5.028e+01   7.252 4.23e-13
+countryUnited Arab Emirates         -2.732e+01  8.041e+01  -0.340 0.734007
+countryUnited Kingdom               -3.580e+02  4.954e+01  -7.226 5.09e-13
+countryUnited States                -6.994e+02  6.702e+01 -10.436  &lt; 2e-16
+countryUruguay                       3.119e+01  4.969e+01   0.628 0.530189
+countryUzbekistan                   -1.323e+02  5.270e+01  -2.510 0.012088
+year                                -1.866e+00  4.469e-01  -4.175 2.99e-05
+sexmale                              2.752e+02  7.246e+00  37.975  &lt; 2e-16
+age25-34 years                       7.510e+01  1.254e+01   5.988 2.14e-09
+age35-54 years                       1.538e+02  1.282e+01  11.996  &lt; 2e-16
+age5-14 years                       -1.563e+02  1.256e+01 -12.444  &lt; 2e-16
+age55-74 years                       1.775e+02  1.254e+01  14.154  &lt; 2e-16
+age75+ years                         1.754e+02  1.284e+01  13.659  &lt; 2e-16
+population                           1.622e-04  2.155e-06  75.241  &lt; 2e-16
+                                       
+(Intercept)                         ***
+countryAntigua and Barbuda             
+countryArgentina                    ***
+countryArmenia                         
+countryAruba                           
+countryAustralia                       
+countryAustria                         
+countryAzerbaijan                      
+countryBahamas                         
+countryBahrain                         
+countryBarbados                        
+countryBelarus                      ** 
+countryBelgium                         
+countryBelize                          
+countryBosnia and Herzegovina          
+countryBrazil                       ***
+countryBulgaria                        
+countryCabo Verde                      
+countryCanada                          
+countryChile                           
+countryColombia                     ***
+countryCosta Rica                      
+countryCroatia                         
+countryCuba                            
+countryCyprus                          
+countryCzech Republic                  
+countryDenmark                         
+countryDominica                        
+countryEcuador                         
+countryEl Salvador                     
+countryEstonia                         
+countryFiji                            
+countryFinland                         
+countryFrance                       ***
+countryGeorgia                         
+countryGermany                         
+countryGreece                          
+countryGrenada                         
+countryGuatemala                    .  
+countryGuyana                          
+countryHungary                      ** 
+countryIceland                         
+countryIreland                         
+countryIsrael                          
+countryItaly                        ***
+countryJamaica                         
+countryJapan                        ***
+countryKazakhstan                   ** 
+countryKiribati                        
+countryKuwait                          
+countryKyrgyzstan                      
+countryLatvia                          
+countryLithuania                    *  
+countryLuxembourg                      
+countryMacau                           
+countryMaldives                        
+countryMalta                           
+countryMauritius                       
+countryMexico                       ***
+countryMongolia                        
+countryMontenegro                      
+countryNetherlands                     
+countryNew Zealand                     
+countryNicaragua                       
+countryNorway                          
+countryOman                            
+countryPanama                          
+countryParaguay                        
+countryPhilippines                  ***
+countryPoland                          
+countryPortugal                        
+countryPuerto Rico                     
+countryQatar                           
+countryRepublic of Korea            ** 
+countryRomania                         
+countryRussian Federation           ***
+countrySaint Kitts and Nevis           
+countrySaint Lucia                     
+countrySaint Vincent and Grenadines    
+countrySan Marino                      
+countrySerbia                          
+countrySeychelles                      
+countrySingapore                       
+countrySlovakia                        
+countrySlovenia                        
+countrySouth Africa                 ***
+countrySpain                        ***
+countrySri Lanka                    ***
+countrySuriname                        
+countrySweden                          
+countrySwitzerland                     
+countryThailand                     ***
+countryTrinidad and Tobago             
+countryTurkey                       ***
+countryTurkmenistan                    
+countryUkraine                      ***
+countryUnited Arab Emirates            
+countryUnited Kingdom               ***
+countryUnited States                ***
+countryUruguay                         
+countryUzbekistan                   *  
+year                                ***
+sexmale                             ***
+age25-34 years                      ***
+age35-54 years                      ***
+age5-14 years                       ***
+age55-74 years                      ***
+age75+ years                        ***
+population                          ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 604.1 on 27711 degrees of freedom
+Multiple R-squared:  0.5532,    Adjusted R-squared:  0.5515 
+F-statistic: 317.7 on 108 and 27711 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Here is a tidyed up version</p>
+<pre class="r"><code>data_fit_stats &lt;- data_fit %&gt;%
+  tidy()
+data_fit_stats %&gt;% knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">3490.7007228</td>
+<td align="right">894.2763596</td>
+<td align="right">3.9033803</td>
+<td align="right">0.0000951</td>
+</tr>
+<tr class="even">
+<td align="left">countryAntigua and Barbuda</td>
+<td align="right">30.3373681</td>
+<td align="right">50.0912045</td>
+<td align="right">0.6056426</td>
+<td align="right">0.5447571</td>
+</tr>
+<tr class="odd">
+<td align="left">countryArgentina</td>
+<td align="right">-198.3679916</td>
+<td align="right">48.9234592</td>
+<td align="right">-4.0546600</td>
+<td align="right">0.0000503</td>
+</tr>
+<tr class="even">
+<td align="left">countryArmenia</td>
+<td align="right">0.2488175</td>
+<td align="right">51.0849254</td>
+<td align="right">0.0048707</td>
+<td align="right">0.9961138</td>
+</tr>
+<tr class="odd">
+<td align="left">countryAruba</td>
+<td align="right">39.6482206</td>
+<td align="right">59.6688057</td>
+<td align="right">0.6644715</td>
+<td align="right">0.5063941</td>
+</tr>
+<tr class="even">
+<td align="left">countryAustralia</td>
+<td align="right">-17.6310383</td>
+<td align="right">49.0272279</td>
+<td align="right">-0.3596173</td>
+<td align="right">0.7191361</td>
+</tr>
+<tr class="odd">
+<td align="left">countryAustria</td>
+<td align="right">59.4114630</td>
+<td align="right">48.3610714</td>
+<td align="right">1.2284977</td>
+<td align="right">0.2192706</td>
+</tr>
+<tr class="even">
+<td align="left">countryAzerbaijan</td>
+<td align="right">-57.9664460</td>
+<td align="right">57.3100100</td>
+<td align="right">-1.0114541</td>
+<td align="right">0.3118080</td>
+</tr>
+<tr class="odd">
+<td align="left">countryBahamas</td>
+<td align="right">31.5902123</td>
+<td align="right">52.0201850</td>
+<td align="right">0.6072684</td>
+<td align="right">0.5436778</td>
+</tr>
+<tr class="even">
+<td align="left">countryBahrain</td>
+<td align="right">28.5638903</td>
+<td align="right">53.2305415</td>
+<td align="right">0.5366072</td>
+<td align="right">0.5915433</td>
+</tr>
+<tr class="odd">
+<td align="left">countryBarbados</td>
+<td align="right">28.0799875</td>
+<td align="right">50.9822626</td>
+<td align="right">0.5507795</td>
+<td align="right">0.5817892</td>
+</tr>
+<tr class="even">
+<td align="left">countryBelarus</td>
+<td align="right">144.9546409</td>
+<td align="right">53.2223919</td>
+<td align="right">2.7235649</td>
+<td align="right">0.0064622</td>
+</tr>
+<tr class="odd">
+<td align="left">countryBelgium</td>
+<td align="right">68.7499511</td>
+<td align="right">48.6325261</td>
+<td align="right">1.4136619</td>
+<td align="right">0.1574724</td>
+</tr>
+<tr class="even">
+<td align="left">countryBelize</td>
+<td align="right">32.5993780</td>
+<td align="right">49.6964575</td>
+<td align="right">0.6559699</td>
+<td align="right">0.5118490</td>
+</tr>
+<tr class="odd">
+<td align="left">countryBosnia and Herzegovina</td>
+<td align="right">19.3235572</td>
+<td align="right">128.9351278</td>
+<td align="right">0.1498704</td>
+<td align="right">0.8808680</td>
+</tr>
+<tr class="even">
+<td align="left">countryBrazil</td>
+<td align="right">-1475.6472493</td>
+<td align="right">55.9052089</td>
+<td align="right">-26.3955234</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countryBulgaria</td>
+<td align="right">27.9235575</td>
+<td align="right">48.9590598</td>
+<td align="right">0.5703451</td>
+<td align="right">0.5684483</td>
+</tr>
+<tr class="even">
+<td align="left">countryCabo Verde</td>
+<td align="right">50.1789792</td>
+<td align="right">178.3934123</td>
+<td align="right">0.2812827</td>
+<td align="right">0.7784957</td>
+</tr>
+<tr class="odd">
+<td align="left">countryCanada</td>
+<td align="right">-45.4821341</td>
+<td align="right">49.5226541</td>
+<td align="right">-0.9184107</td>
+<td align="right">0.3584119</td>
+</tr>
+<tr class="even">
+<td align="left">countryChile</td>
+<td align="right">-44.2299214</td>
+<td align="right">48.6559278</td>
+<td align="right">-0.9090346</td>
+<td align="right">0.3633398</td>
+</tr>
+<tr class="odd">
+<td align="left">countryColombia</td>
+<td align="right">-308.0692002</td>
+<td align="right">48.9717890</td>
+<td align="right">-6.2907483</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">countryCosta Rica</td>
+<td align="right">4.1704477</td>
+<td align="right">48.9514207</td>
+<td align="right">0.0851956</td>
+<td align="right">0.9321065</td>
+</tr>
+<tr class="odd">
+<td align="left">countryCroatia</td>
+<td align="right">54.2026609</td>
+<td align="right">52.7544378</td>
+<td align="right">1.0274522</td>
+<td align="right">0.3042166</td>
+</tr>
+<tr class="even">
+<td align="left">countryCuba</td>
+<td align="right">40.8210518</td>
+<td align="right">51.5244658</td>
+<td align="right">0.7922654</td>
+<td align="right">0.4282127</td>
+</tr>
+<tr class="odd">
+<td align="left">countryCyprus</td>
+<td align="right">37.3429074</td>
+<td align="right">58.7402364</td>
+<td align="right">0.6357296</td>
+<td align="right">0.5249579</td>
+</tr>
+<tr class="even">
+<td align="left">countryCzech Republic</td>
+<td align="right">38.9557244</td>
+<td align="right">50.1978504</td>
+<td align="right">0.7760437</td>
+<td align="right">0.4377298</td>
+</tr>
+<tr class="odd">
+<td align="left">countryDenmark</td>
+<td align="right">29.6908291</td>
+<td align="right">52.6348560</td>
+<td align="right">0.5640906</td>
+<td align="right">0.5726970</td>
+</tr>
+<tr class="even">
+<td align="left">countryDominica</td>
+<td align="right">3.3836195</td>
+<td align="right">178.4268196</td>
+<td align="right">0.0189636</td>
+<td align="right">0.9848703</td>
+</tr>
+<tr class="odd">
+<td align="left">countryEcuador</td>
+<td align="right">-62.3104237</td>
+<td align="right">48.6390704</td>
+<td align="right">-1.2810776</td>
+<td align="right">0.2001771</td>
+</tr>
+<tr class="even">
+<td align="left">countryEl Salvador</td>
+<td align="right">6.9742677</td>
+<td align="right">51.4944117</td>
+<td align="right">0.1354374</td>
+<td align="right">0.8922671</td>
+</tr>
+<tr class="odd">
+<td align="left">countryEstonia</td>
+<td align="right">52.0736490</td>
+<td align="right">53.2686417</td>
+<td align="right">0.9775667</td>
+<td align="right">0.3282972</td>
+</tr>
+<tr class="even">
+<td align="left">countryFiji</td>
+<td align="right">36.0444479</td>
+<td align="right">64.4770828</td>
+<td align="right">0.5590273</td>
+<td align="right">0.5761476</td>
+</tr>
+<tr class="odd">
+<td align="left">countryFinland</td>
+<td align="right">64.7638714</td>
+<td align="right">49.3142247</td>
+<td align="right">1.3132899</td>
+<td align="right">0.1890962</td>
+</tr>
+<tr class="even">
+<td align="left">countryFrance</td>
+<td align="right">192.9038711</td>
+<td align="right">49.8617004</td>
+<td align="right">3.8687784</td>
+<td align="right">0.0001096</td>
+</tr>
+<tr class="odd">
+<td align="left">countryGeorgia</td>
+<td align="right">-8.0164065</td>
+<td align="right">52.6046685</td>
+<td align="right">-0.1523896</td>
+<td align="right">0.8788807</td>
+</tr>
+<tr class="even">
+<td align="left">countryGermany</td>
+<td align="right">-82.0769549</td>
+<td align="right">52.2760686</td>
+<td align="right">-1.5700675</td>
+<td align="right">0.1164108</td>
+</tr>
+<tr class="odd">
+<td align="left">countryGreece</td>
+<td align="right">-72.2926197</td>
+<td align="right">48.6344423</td>
+<td align="right">-1.4864490</td>
+<td align="right">0.1371718</td>
+</tr>
+<tr class="even">
+<td align="left">countryGrenada</td>
+<td align="right">33.0419004</td>
+<td align="right">50.6101342</td>
+<td align="right">0.6528712</td>
+<td align="right">0.5138447</td>
+</tr>
+<tr class="odd">
+<td align="left">countryGuatemala</td>
+<td align="right">-81.7269542</td>
+<td align="right">48.9710022</td>
+<td align="right">-1.6688847</td>
+<td align="right">0.0951515</td>
+</tr>
+<tr class="even">
+<td align="left">countryGuyana</td>
+<td align="right">35.6862455</td>
+<td align="right">50.9852706</td>
+<td align="right">0.6999325</td>
+<td align="right">0.4839754</td>
+</tr>
+<tr class="odd">
+<td align="left">countryHungary</td>
+<td align="right">145.4583453</td>
+<td align="right">50.6394624</td>
+<td align="right">2.8724307</td>
+<td align="right">0.0040764</td>
+</tr>
+<tr class="even">
+<td align="left">countryIceland</td>
+<td align="right">31.1897367</td>
+<td align="right">48.3567125</td>
+<td align="right">0.6449929</td>
+<td align="right">0.5189371</td>
+</tr>
+<tr class="odd">
+<td align="left">countryIreland</td>
+<td align="right">17.1470475</td>
+<td align="right">48.9515157</td>
+<td align="right">0.3502863</td>
+<td align="right">0.7261265</td>
+</tr>
+<tr class="even">
+<td align="left">countryIsrael</td>
+<td align="right">-12.8260551</td>
+<td align="right">48.6194472</td>
+<td align="right">-0.2638050</td>
+<td align="right">0.7919321</td>
+</tr>
+<tr class="odd">
+<td align="left">countryItaly</td>
+<td align="right">-360.4327574</td>
+<td align="right">49.5176204</td>
+<td align="right">-7.2788788</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">countryJamaica</td>
+<td align="right">-1.8405913</td>
+<td align="right">56.3181898</td>
+<td align="right">-0.0326820</td>
+<td align="right">0.9739284</td>
+</tr>
+<tr class="odd">
+<td align="left">countryJapan</td>
+<td align="right">596.5587791</td>
+<td align="right">52.8764113</td>
+<td align="right">11.2821344</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">countryKazakhstan</td>
+<td align="right">166.1657557</td>
+<td align="right">50.5789032</td>
+<td align="right">3.2852780</td>
+<td align="right">0.0010201</td>
+</tr>
+<tr class="odd">
+<td align="left">countryKiribati</td>
+<td align="right">24.2944625</td>
+<td align="right">64.4166896</td>
+<td align="right">0.3771455</td>
+<td align="right">0.7060684</td>
+</tr>
+<tr class="even">
+<td align="left">countryKuwait</td>
+<td align="right">7.2255818</td>
+<td align="right">50.9896415</td>
+<td align="right">0.1417069</td>
+<td align="right">0.8873126</td>
+</tr>
+<tr class="odd">
+<td align="left">countryKyrgyzstan</td>
+<td align="right">19.0184045</td>
+<td align="right">50.5404556</td>
+<td align="right">0.3763006</td>
+<td align="right">0.7066963</td>
+</tr>
+<tr class="even">
+<td align="left">countryLatvia</td>
+<td align="right">63.4046075</td>
+<td align="right">53.2674620</td>
+<td align="right">1.1903065</td>
+<td align="right">0.2339361</td>
+</tr>
+<tr class="odd">
+<td align="left">countryLithuania</td>
+<td align="right">105.5184962</td>
+<td align="right">52.7547321</td>
+<td align="right">2.0001712</td>
+<td align="right">0.0454915</td>
+</tr>
+<tr class="even">
+<td align="left">countryLuxembourg</td>
+<td align="right">31.8833629</td>
+<td align="right">48.6194160</td>
+<td align="right">0.6557743</td>
+<td align="right">0.5119748</td>
+</tr>
+<tr class="odd">
+<td align="left">countryMacau</td>
+<td align="right">18.6391441</td>
+<td align="right">178.3296327</td>
+<td align="right">0.1045207</td>
+<td align="right">0.9167569</td>
+</tr>
+<tr class="even">
+<td align="left">countryMaldives</td>
+<td align="right">38.0293088</td>
+<td align="right">66.5663761</td>
+<td align="right">0.5712991</td>
+<td align="right">0.5678016</td>
+</tr>
+<tr class="odd">
+<td align="left">countryMalta</td>
+<td align="right">28.9448713</td>
+<td align="right">48.6195121</td>
+<td align="right">0.5953345</td>
+<td align="right">0.5516248</td>
+</tr>
+<tr class="even">
+<td align="left">countryMauritius</td>
+<td align="right">27.8674115</td>
+<td align="right">48.3554432</td>
+<td align="right">0.5763035</td>
+<td align="right">0.5644147</td>
+</tr>
+<tr class="odd">
+<td align="left">countryMexico</td>
+<td align="right">-877.8865970</td>
+<td align="right">51.0373366</td>
+<td align="right">-17.2008701</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">countryMongolia</td>
+<td align="right">23.8185606</td>
+<td align="right">194.7754722</td>
+<td align="right">0.1222873</td>
+<td align="right">0.9026724</td>
+</tr>
+<tr class="odd">
+<td align="left">countryMontenegro</td>
+<td align="right">36.7104198</td>
+<td align="right">66.5556962</td>
+<td align="right">0.5515744</td>
+<td align="right">0.5812444</td>
+</tr>
+<tr class="even">
+<td align="left">countryNetherlands</td>
+<td align="right">-36.8864397</td>
+<td align="right">48.4009255</td>
+<td align="right">-0.7621019</td>
+<td align="right">0.4460056</td>
+</tr>
+<tr class="odd">
+<td align="left">countryNew Zealand</td>
+<td align="right">23.6883312</td>
+<td align="right">49.3072571</td>
+<td align="right">0.4804228</td>
+<td align="right">0.6309306</td>
+</tr>
+<tr class="even">
+<td align="left">countryNicaragua</td>
+<td align="right">12.0471779</td>
+<td align="right">80.5376188</td>
+<td align="right">0.1495845</td>
+<td align="right">0.8810935</td>
+</tr>
+<tr class="odd">
+<td align="left">countryNorway</td>
+<td align="right">22.7483453</td>
+<td align="right">48.9549169</td>
+<td align="right">0.4646795</td>
+<td align="right">0.6421647</td>
+</tr>
+<tr class="even">
+<td align="left">countryOman</td>
+<td align="right">13.2201985</td>
+<td align="right">107.4613377</td>
+<td align="right">0.1230228</td>
+<td align="right">0.9020899</td>
+</tr>
+<tr class="odd">
+<td align="left">countryPanama</td>
+<td align="right">9.2499594</td>
+<td align="right">50.9931171</td>
+<td align="right">0.1813962</td>
+<td align="right">0.8560579</td>
+</tr>
+<tr class="even">
+<td align="left">countryParaguay</td>
+<td align="right">-14.5312905</td>
+<td align="right">50.0922228</td>
+<td align="right">-0.2900907</td>
+<td align="right">0.7717490</td>
+</tr>
+<tr class="odd">
+<td align="left">countryPhilippines</td>
+<td align="right">-804.3765775</td>
+<td align="right">59.6581511</td>
+<td align="right">-13.4830960</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">countryPoland</td>
+<td align="right">32.9228775</td>
+<td align="right">51.8309506</td>
+<td align="right">0.6351973</td>
+<td align="right">0.5253050</td>
+</tr>
+<tr class="odd">
+<td align="left">countryPortugal</td>
+<td align="right">-26.3175094</td>
+<td align="right">50.1041450</td>
+<td align="right">-0.5252561</td>
+<td align="right">0.5994094</td>
+</tr>
+<tr class="even">
+<td align="left">countryPuerto Rico</td>
+<td align="right">10.6312625</td>
+<td align="right">48.6172739</td>
+<td align="right">0.2186725</td>
+<td align="right">0.8269068</td>
+</tr>
+<tr class="odd">
+<td align="left">countryQatar</td>
+<td align="right">28.5247919</td>
+<td align="right">58.7325139</td>
+<td align="right">0.4856729</td>
+<td align="right">0.6272029</td>
+</tr>
+<tr class="even">
+<td align="left">countryRepublic of Korea</td>
+<td align="right">145.1331344</td>
+<td align="right">49.1642346</td>
+<td align="right">2.9520064</td>
+<td align="right">0.0031598</td>
+</tr>
+<tr class="odd">
+<td align="left">countryRomania</td>
+<td align="right">-25.9175566</td>
+<td align="right">49.8665479</td>
+<td align="right">-0.5197383</td>
+<td align="right">0.6032501</td>
+</tr>
+<tr class="even">
+<td align="left">countryRussian Federation</td>
+<td align="right">1922.3280645</td>
+<td align="right">55.5304886</td>
+<td align="right">34.6175248</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySaint Kitts and Nevis</td>
+<td align="right">14.9469930</td>
+<td align="right">107.3952886</td>
+<td align="right">0.1391774</td>
+<td align="right">0.8893110</td>
+</tr>
+<tr class="even">
+<td align="left">countrySaint Lucia</td>
+<td align="right">30.5976261</td>
+<td align="right">49.6884154</td>
+<td align="right">0.6157899</td>
+<td align="right">0.5380382</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySaint Vincent and Grenadines</td>
+<td align="right">35.3179510</td>
+<td align="right">50.9999273</td>
+<td align="right">0.6925098</td>
+<td align="right">0.4886230</td>
+</tr>
+<tr class="even">
+<td align="left">countrySan Marino</td>
+<td align="right">34.5107049</td>
+<td align="right">107.3382417</td>
+<td align="right">0.3215136</td>
+<td align="right">0.7478236</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySerbia</td>
+<td align="right">61.6244259</td>
+<td align="right">55.5229724</td>
+<td align="right">1.1098906</td>
+<td align="right">0.2670558</td>
+</tr>
+<tr class="even">
+<td align="left">countrySeychelles</td>
+<td align="right">39.7598430</td>
+<td align="right">55.4771419</td>
+<td align="right">0.7166887</td>
+<td align="right">0.4735722</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySingapore</td>
+<td align="right">18.3015697</td>
+<td align="right">48.6172194</td>
+<td align="right">0.3764421</td>
+<td align="right">0.7065911</td>
+</tr>
+<tr class="even">
+<td align="left">countrySlovakia</td>
+<td align="right">19.3824135</td>
+<td align="right">52.6046626</td>
+<td align="right">0.3684543</td>
+<td align="right">0.7125373</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySlovenia</td>
+<td align="right">57.8031496</td>
+<td align="right">53.2677250</td>
+<td align="right">1.0851440</td>
+<td align="right">0.2778673</td>
+</tr>
+<tr class="even">
+<td align="left">countrySouth Africa</td>
+<td align="right">-516.9822517</td>
+<td align="right">54.4183238</td>
+<td align="right">-9.5001502</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySpain</td>
+<td align="right">-233.5905617</td>
+<td align="right">49.0599454</td>
+<td align="right">-4.7613294</td>
+<td align="right">0.0000019</td>
+</tr>
+<tr class="even">
+<td align="left">countrySri Lanka</td>
+<td align="right">224.9537993</td>
+<td align="right">64.4537090</td>
+<td align="right">3.4901607</td>
+<td align="right">0.0004835</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySuriname</td>
+<td align="right">32.9622160</td>
+<td align="right">49.6884350</td>
+<td align="right">0.6633780</td>
+<td align="right">0.5070940</td>
+</tr>
+<tr class="even">
+<td align="left">countrySweden</td>
+<td align="right">24.4704466</td>
+<td align="right">49.0276567</td>
+<td align="right">0.4991152</td>
+<td align="right">0.6177022</td>
+</tr>
+<tr class="odd">
+<td align="left">countrySwitzerland</td>
+<td align="right">49.1000919</td>
+<td align="right">53.2693530</td>
+<td align="right">0.9217325</td>
+<td align="right">0.3566762</td>
+</tr>
+<tr class="even">
+<td align="left">countryThailand</td>
+<td align="right">-404.5150815</td>
+<td align="right">50.6852162</td>
+<td align="right">-7.9809284</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countryTrinidad and Tobago</td>
+<td align="right">25.3628042</td>
+<td align="right">50.0921672</td>
+<td align="right">0.5063228</td>
+<td align="right">0.6126341</td>
+</tr>
+<tr class="even">
+<td align="left">countryTurkey</td>
+<td align="right">-756.5731523</td>
+<td align="right">76.7442576</td>
+<td align="right">-9.8583682</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countryTurkmenistan</td>
+<td align="right">5.0518957</td>
+<td align="right">49.3134855</td>
+<td align="right">0.1024445</td>
+<td align="right">0.9184046</td>
+</tr>
+<tr class="even">
+<td align="left">countryUkraine</td>
+<td align="right">364.6174783</td>
+<td align="right">50.2811476</td>
+<td align="right">7.2515743</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countryUnited Arab Emirates</td>
+<td align="right">-27.3219838</td>
+<td align="right">80.4052991</td>
+<td align="right">-0.3398033</td>
+<td align="right">0.7340073</td>
+</tr>
+<tr class="even">
+<td align="left">countryUnited Kingdom</td>
+<td align="right">-358.0202587</td>
+<td align="right">49.5438990</td>
+<td align="right">-7.2263238</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">countryUnited States</td>
+<td align="right">-699.4057404</td>
+<td align="right">67.0191362</td>
+<td align="right">-10.4359110</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">countryUruguay</td>
+<td align="right">31.1899772</td>
+<td align="right">49.6872690</td>
+<td align="right">0.6277257</td>
+<td align="right">0.5301888</td>
+</tr>
+<tr class="odd">
+<td align="left">countryUzbekistan</td>
+<td align="right">-132.2606624</td>
+<td align="right">52.6991177</td>
+<td align="right">-2.5097320</td>
+<td align="right">0.0120879</td>
+</tr>
+<tr class="even">
+<td align="left">year</td>
+<td align="right">-1.8657360</td>
+<td align="right">0.4469254</td>
+<td align="right">-4.1746023</td>
+<td align="right">0.0000299</td>
+</tr>
+<tr class="odd">
+<td align="left">sexmale</td>
+<td align="right">275.1840997</td>
+<td align="right">7.2464317</td>
+<td align="right">37.9751182</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">age25-34 years</td>
+<td align="right">75.0950697</td>
+<td align="right">12.5400430</td>
+<td align="right">5.9884220</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">age35-54 years</td>
+<td align="right">153.7775679</td>
+<td align="right">12.8191241</td>
+<td align="right">11.9959497</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">age5-14 years</td>
+<td align="right">-156.3203202</td>
+<td align="right">12.5622616</td>
+<td align="right">-12.4436447</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">age55-74 years</td>
+<td align="right">177.4889993</td>
+<td align="right">12.5399031</td>
+<td align="right">14.1539370</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">age75+ years</td>
+<td align="right">175.4315135</td>
+<td align="right">12.8434032</td>
+<td align="right">13.6592701</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">population</td>
+<td align="right">0.0001622</td>
+<td align="right">0.0000022</td>
+<td align="right">75.2414554</td>
+<td align="right">0.0000000</td>
+</tr>
+</tbody>
+</table>
+<p>Based on this, we can see that the year attribute has a p-value = 0.0000299 &lt;= 0.05. The population attribute also has a p-value = 0.0000000 &lt;= 0.05. Therefore, we need to include these in our model.</p>
+<p>Since all the attributes we chose at first were correct, we need not change our model and can proceed to predicting data.</p>
+</div>
 
 
 
